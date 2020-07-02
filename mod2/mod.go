@@ -1,6 +1,8 @@
 package mod2
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // MethodMod2 mod2
 func MethodMod2() {
