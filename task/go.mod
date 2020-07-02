@@ -7,6 +7,6 @@ require (
 	github.com/tonny-zhang/goutils/fileutils v0.0.0
 )
 
-replace github.com/tonny-zhang/goutils/fileutils => ../fileutils
+// replace github.com/tonny-zhang/goutils/fileutils => ../fileutils
 
-replace github.com/tonny-zhang/goutils/cache => ../cache
+// replace github.com/tonny-zhang/goutils/cache => ../cache
