@@ -10,25 +10,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/tonny-zhang/goutils/fileutils"
+	"goutils/fileutils"
 )
-
-// // IsFileExists 查看指定文件是否存在
-// func isFileExists(name string) bool {
-// 	if _, err := os.Stat(name); err != nil {
-// 		if os.IsNotExist(err) {
-// 			return false
-// 		}
-// 	}
-// 	return true
-// }
-
-// // Mkdirp 目录没有时创建
-// func mkdirp(dir string) {
-// 	if !isFileExists(dir) {
-// 		os.MkdirAll(dir, os.ModePerm)
-// 	}
-// }
 
 // RemoveCache 删除缓存文件
 func RemoveCache(filecache string) {

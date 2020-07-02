@@ -5,8 +5,8 @@ import (
 	"path"
 	"runtime"
 
-	"github.com/tonny-zhang/goutils/cache"
-	"github.com/tonny-zhang/goutils/fileutils"
+	"goutils/cache"
+	"goutils/fileutils"
 )
 
 // 是否已经配置过
@@ -41,6 +41,7 @@ func SetConf(conf Conf) (err error) {
 		}
 		channelRunner = make(chan interface{}, numRunner)
 
+		fmt.Println(numRunner, len(channelRunner))
 		_dirCache = conf.DirCache
 		if "" == _dirCache {
 			err = fmt.Errorf("请先设置缓存目录")
@@ -53,11 +54,12 @@ func SetConf(conf Conf) (err error) {
 		err = fmt.Errorf("已经被初始")
 	}
 	if err == nil {
+		fmt.Println(len(channelRunner))
 		_isSetedConf = true
 
-		fmt.Println("开始监听")
-		go start()
-		fmt.Println("开始监听2")
+		// fmt.Println("开始监听")
+		// go start()
+		// fmt.Println("开始监听2")
 	}
 	return
 }
@@ -94,6 +96,9 @@ func AddTask(paramTask interface{}) (err error) {
 		fmt.Println(filecache)
 
 		go runTask(paramTask)
+		// fmt.Println("开始监听1")
+		// go start()
+		// fmt.Println("开始监听12")
 	}
 	return
 }
