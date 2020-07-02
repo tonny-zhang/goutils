@@ -1,0 +1,4 @@
+github.com/tonny-zhang/goutils/cache v0.0.0-20200702025941-3a8958a0844b h1:hQa9ibMDVhqB9GCa4i2WCYj/TK0DRewSQ14Cos7Z11s=
+github.com/tonny-zhang/goutils/cache v0.0.0-20200702025941-3a8958a0844b/go.mod h1:hz1V+JfB6ipmuWLcS61WDGMuWd5liCTJhnWS1yHC8sI=
+github.com/tonny-zhang/goutils/fileutils v0.0.0-20200702025526-b095eb5d82a9 h1:aQ/PVBIdk7SU9raFSOqYcNFyCBApRlRkJlfPfVR2usk=
+github.com/tonny-zhang/goutils/fileutils v0.0.0-20200702025526-b095eb5d82a9/go.mod h1:K4rXyVqj53KvsarPBDI2OxtRsmcGTgrFYLr7miP3Yyw=
