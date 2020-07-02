@@ -7,8 +7,8 @@ import (
 	"github.com/tonny-zhang/goutils/mod2"
 )
 
-// MethodMod1 mod1
-func MethodMod1() {
+// MethodMod mod1
+func MethodMod() {
 	fmt.Println("MethodMod3")
 
 	mod1.MethodMod1()
