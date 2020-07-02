@@ -5,8 +5,8 @@ import (
 	"path"
 	"runtime"
 
-	"cache"
-	"fileutils"
+	"github.com/tonny-zhang/goutils/cache"
+	"github.com/tonny-zhang/goutils/fileutils"
 )
 
 // 是否已经配置过
