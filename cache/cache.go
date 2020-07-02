@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"time"
 
-	"fileutils"
+	"github.com/tonny-zhang/goutils/fileutils"
 )
 
 // // IsFileExists 查看指定文件是否存在
