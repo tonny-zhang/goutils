@@ -15,9 +15,9 @@ type TypeJSON struct {
 // JSON http响应json
 func JSON(w http.ResponseWriter, code int, msg string, data interface{}) {
 	w.Header().Set("content-type", "application/json; charset=utf-8")
-	if data == nil {
-		data = make(map[string]interface{})
-	}
+	// if data == nil {
+	// 	data = make(map[string]interface{})
+	// }
 	d := TypeJSON{
 		Code: code,
 		Msg:  msg,
