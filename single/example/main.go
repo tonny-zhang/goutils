@@ -6,8 +6,11 @@ import (
 )
 
 func main() {
-	started := single.StartAuto()
+	// 自动使用sock文件
+	// started := single.StartAuto()
 
+	// 指定sock文件
+	started := single.Start("./1.sock")
 	if started {
 		fmt.Println("已经启动了一个实例")
 	} else {

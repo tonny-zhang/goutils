@@ -5,14 +5,10 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"errors"
-	"fmt"
-	"log"
 	"net"
-	"net/http"
 	"os"
 	"os/exec"
 	"os/user"
-	"path"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -34,13 +30,11 @@ func Start(socketFile string) (started bool) {
 		}
 		defer l.Close()
 
-		http.Serve(l, nil)
 		for {
 			conn, err := l.Accept()
 			if err != nil {
-				log.Fatal("accept error:", err)
+
 			} else {
-				fmt.Println(conn)
 				conn.Close()
 			}
 		}
@@ -64,7 +58,7 @@ func StartAuto() bool {
 	if e != nil {
 		p = "./"
 	}
-	filepath := path.Join(p, "."+path.Base(execName)+"-"+filename+".sock")
+	filepath := filepath.Join(p, "."+filepath.Base(execName)+"-"+filename+".sock")
 	return Start(filepath)
 }
 
