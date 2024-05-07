@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"time"
 
-	"goutils/fileutils"
+	"github.com/tonny-zhang/goutils/fileutils"
 )
 
 // RemoveCache 删除缓存文件

@@ -3,11 +3,12 @@ package task
 import (
 	"encoding/json"
 	"fmt"
-	"goutils/cache"
-	"goutils/fileutils"
 	"os"
 	"path"
 	"runtime"
+
+	"github.com/tonny-zhang/goutils/cache"
+	"github.com/tonny-zhang/goutils/fileutils"
 )
 
 // Conf 配置

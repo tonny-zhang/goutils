@@ -1,7 +1,7 @@
 package env
 
 import (
-	"goutils/fileutils"
+	"github.com/tonny-zhang/goutils/fileutils"
 	"path"
 
 	"github.com/joho/godotenv"

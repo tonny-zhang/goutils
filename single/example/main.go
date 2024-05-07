@@ -2,7 +2,8 @@ package main
 
 import (
 	"fmt"
-	"goutils/single"
+
+	"github.com/tonny-zhang/goutils/single"
 )
 
 func main() {

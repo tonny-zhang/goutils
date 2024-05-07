@@ -2,8 +2,9 @@ package network
 
 import (
 	"bytes"
-	"goutils/encode"
-	"goutils/fileutils"
+
+	"github.com/tonny-zhang/goutils/encode"
+	"github.com/tonny-zhang/goutils/fileutils"
 
 	"io"
 	libURL "net/url"

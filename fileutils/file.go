@@ -54,15 +54,25 @@ func initData() {
 
 		if v, ok := debug.ReadBuildInfo(); ok {
 			mainModuleName := v.Main.Path
+			if mainModuleName == "" {
+				if len(v.Deps) > 0 {
+					mainModuleName = v.Deps[len(v.Deps)-1].Path
+				}
+			}
+			if mainModuleName != "" {
+				for i := len(arr) - 2; i > 0; i-- {
+					if strings.HasPrefix(arr[i], "main.main") {
+						dirRuntimeProjectBase = strings.Replace(strings.Split(strings.Trim(arr[i+1], "\t"), ":")[0], "/main.go", "", -1)
+						break
+					} else if strings.HasPrefix(arr[i], mainModuleName) {
+						p := arr[i+1]
+						index := strings.LastIndex(p, strings.Split(arr[i], ".")[0])
+						if index > -1 {
+							dirRuntimeProjectBase = strings.Trim(p[:index], "\t") + mainModuleName
+							break
+						}
 
-			for i := len(arr) - 1; i > 0; i-- {
-				if strings.HasPrefix(arr[i], "main.main") {
-					dirRuntimeProjectBase = strings.Replace(strings.Split(strings.Trim(arr[i+1], "\t"), ":")[0], "/main.go", "", -1)
-					break
-				} else if strings.HasPrefix(arr[i], mainModuleName) {
-					p := arr[i+1]
-					dirRuntimeProjectBase = strings.Trim(p[:strings.LastIndex(p, strings.Split(arr[i], ".")[0])], "\t") + mainModuleName
-					break
+					}
 				}
 			}
 

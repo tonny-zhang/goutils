@@ -1,4 +1,4 @@
-module goutils
+module github.com/tonny-zhang/goutils
 
 go 1.22
 

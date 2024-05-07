@@ -2,12 +2,13 @@ package logger
 
 import (
 	"fmt"
-	"goutils/fileutils"
 	"io"
 	"os"
 	"runtime"
 	"strings"
 	"time"
+
+	"github.com/tonny-zhang/goutils/fileutils"
 )
 
 var defaultWriter io.Writer = os.Stdout
