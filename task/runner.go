@@ -5,37 +5,37 @@ import (
 	"fmt"
 	"goutils/cache"
 	"goutils/fileutils"
-	"io/ioutil"
+	"os"
 	"path"
 	"runtime"
 )
 
 // Conf 配置
-type Conf struct {
+type Conf[T any] struct {
 	NumRunner int
 	DirCache  string
-	OnRun     func(param interface{})
+	OnRun     func(param T)
 	OnStop    func()
 }
 
 // Runner 任务执行实例
-type Runner struct {
+type Runner[T any] struct {
 	inited      bool
 	cRunnerDone chan interface{}
 	cRunner     chan byte
 	cStop       chan bool
-	queue       []interface{}
+	queue       []T
 	isConfed    bool
 	isRunning   bool
 
 	numRunner int
 	dirCache  string
-	onRun     func(param interface{})
+	onRun     func(param T)
 	onStop    func()
 }
 
 // Config 配置runner
-func (runner *Runner) Config(conf Conf) (err error) {
+func (runner *Runner[T]) Config(conf Conf[T]) (err error) {
 	_dirCache := conf.DirCache
 	if "" == _dirCache {
 		err = fmt.Errorf("请先设置缓存目录")
@@ -54,7 +54,7 @@ func (runner *Runner) Config(conf Conf) (err error) {
 	return
 }
 
-func (runner *Runner) check() (err error) {
+func (runner *Runner[T]) check() (err error) {
 	if !runner.isConfed {
 		err = fmt.Errorf("请先调用Config方法")
 	}
@@ -63,7 +63,7 @@ func (runner *Runner) check() (err error) {
 }
 
 // Start 开始执行
-func (runner *Runner) Start() (err error) {
+func (runner *Runner[T]) Start() (err error) {
 	err = runner.check()
 	if err == nil {
 		if !runner.isRunning {
@@ -74,7 +74,7 @@ func (runner *Runner) Start() (err error) {
 			runner.cRunner = make(chan byte, runner.numRunner)
 			runner.cStop = make(chan bool)
 
-			fileInfoList, err := ioutil.ReadDir(runner.dirCache)
+			fileInfoList, err := os.ReadDir(runner.dirCache)
 
 			if nil == err {
 				// fmt.Printf("有%d个旧任务需要处理\n", len(fileInfoList))
@@ -82,7 +82,7 @@ func (runner *Runner) Start() (err error) {
 					filepath := path.Join(runner.dirCache, file.Name())
 
 					content, _ := cache.GetCache(filepath, 0)
-					var param interface{}
+					var param T
 					e := json.Unmarshal(content, &param)
 					if nil == e {
 						runner.AddTask(param)
@@ -116,27 +116,27 @@ func (runner *Runner) Start() (err error) {
 }
 
 // Stop 停止任务
-func (runner *Runner) Stop() {
+func (runner *Runner[T]) Stop() {
 	runner.cStop <- true
 }
 
-func (runner *Runner) runTask(paramTask interface{}) {
+func (runner *Runner[T]) runTask(paramTask T) {
 	runner.cRunner <- 0
 	go func() {
 		if nil != runner.onRun {
 			runner.onRun(paramTask)
 		}
 
-		key := getMD5(paramTask)
-		filecache := path.Join(runner.dirCache, key)
-		cache.RemoveCache(filecache)
+		// key := getMD5(paramTask)
+		// filecache := path.Join(runner.dirCache, key)
+		// cache.RemoveCache(filecache)
 		<-runner.cRunner
 		runner.cRunnerDone <- paramTask
 	}()
 }
 
 // AddTask 添加任务
-func (runner *Runner) AddTask(paramTask interface{}) (err error) {
+func (runner *Runner[T]) AddTask(paramTask T) (err error) {
 	err = runner.check()
 	if nil == err {
 		key := getMD5(paramTask)

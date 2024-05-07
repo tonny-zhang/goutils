@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"net/url"
@@ -31,7 +30,7 @@ func Get(urlGet string, params map[string]string) (body []byte, err error) {
 		return nil, e2
 	}
 	defer resp.Body.Close()
-	content, _ := ioutil.ReadAll(resp.Body)
+	content, _ := io.ReadAll(resp.Body)
 	return content, nil
 }
 
@@ -53,7 +52,7 @@ func GetWithHeader(urlGet string) (body []byte, err error) {
 		return
 	}
 	defer resp.Body.Close()
-	content, _ := ioutil.ReadAll(resp.Body)
+	content, _ := io.ReadAll(resp.Body)
 	return content, nil
 }
 
@@ -80,7 +79,7 @@ func Post(urlPost string, params map[string]string) (body []byte, err error) {
 	if resp.StatusCode != 200 {
 		err = fmt.Errorf("出现错误, 响应码[%d]", resp.StatusCode)
 	} else {
-		content, _ := ioutil.ReadAll(resp.Body)
+		content, _ := io.ReadAll(resp.Body)
 
 		body = content
 	}
@@ -124,7 +123,7 @@ func PostUpload(urlPost string, params map[string]string, uploadParamName, uploa
 		return nil, err
 	}
 	defer resp.Body.Close()
-	content, _ := ioutil.ReadAll(resp.Body)
+	content, _ := io.ReadAll(resp.Body)
 
 	return content, nil
 }

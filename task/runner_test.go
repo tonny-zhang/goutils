@@ -1,27 +1,24 @@
-## 有最大执行数量的任务队列
-
-## 用法
-```go
-package main
+package task
 
 import (
 	"fmt"
-	"goutils/task"
 	"math/rand"
+	"os"
 	"sync"
+	"testing"
 	"time"
 )
 
-var dirCache = "/Users/mac/doc_zk/bitgene/cache"
-
-func main() {
+func TestRunner(t *testing.T) {
+	dir := ".cache"
+	os.MkdirAll(dir, os.ModePerm)
 	cDone := make(chan bool)
 	var locker sync.Mutex
 	lenDone := 0
 	r := rand.New(rand.NewSource(time.Now().UnixNano() + 10))
-	var runner task.Runner
-	e := runner.Config(task.Conf[int]{
-		DirCache: dirCache,
+	var runner Runner[int]
+	e := runner.Config(Conf[int]{
+		DirCache: dir,
 		OnRun: func(param int) {
 			x := r.Intn(5)
 			time.Sleep(time.Duration(x) * time.Second)
@@ -57,9 +54,10 @@ func main() {
 		runner.Stop()
 	}()
 
+	fmt.Println("after add")
+
 	for range time.Tick(1 * time.Second) {
 		// fmt.Println("心跳1", time.Now())
 	}
+	t.Fail()
 }
-
-```

@@ -6,7 +6,7 @@ import (
 )
 
 func TestGetMD5(t *testing.T) {
-	conf := Conf{
+	conf := Conf[any]{
 		DirCache: "/test/abc/",
 	}
 	result := getMD5(conf)
