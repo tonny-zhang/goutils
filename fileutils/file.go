@@ -32,8 +32,8 @@ func Mkdirp(dir string) {
 	}
 }
 
-func initData() {
-	initOnce.Do(func() {
+func parseRuntimeProjectBaseDir(stack, mainModuleName string) (res string) {
+	if mainModuleName != "" {
 		/**
 
 		15 main.main()
@@ -49,36 +49,30 @@ func initData() {
 		15 created by pcai/lib.Run in goroutine 1
 		16      {{项目路径}}/lib/test.go:24 +0x76
 		*/
-		stack := string(debug.Stack())
 		arr := strings.Split(stack, "\n")
-
-		if v, ok := debug.ReadBuildInfo(); ok {
-			mainModuleName := v.Main.Path
-			if mainModuleName == "" {
-				if len(v.Deps) > 0 {
-					mainModuleName = v.Deps[len(v.Deps)-1].Path
+		for i := len(arr) - 2; i > 0; i-- {
+			if strings.HasPrefix(arr[i], "main.main") {
+				res = strings.Replace(strings.Split(strings.Trim(arr[i+1], "\t"), ":")[0], "/main.go", "", -1)
+				break
+			} else if strings.HasPrefix(arr[i], mainModuleName) {
+				p := arr[i+1]
+				p2 := strings.Split(arr[i], ".")[0]
+				index2 := strings.LastIndex(p2, "/")
+				p2 = "/" + p2[index2+1:] + "/"
+				index := strings.LastIndex(p, p2)
+				// fmt.Println("可能是", p, arr[i], p2, index)
+				if index > -1 {
+					res = strings.Trim(p[:index], "\t")
+					break
 				}
-			}
-			if mainModuleName != "" {
-				for i := len(arr) - 2; i > 0; i-- {
-					if strings.HasPrefix(arr[i], "main.main") {
-						dirRuntimeProjectBase = strings.Replace(strings.Split(strings.Trim(arr[i+1], "\t"), ":")[0], "/main.go", "", -1)
-						break
-					} else if strings.HasPrefix(arr[i], mainModuleName) {
-						p := arr[i+1]
-						index := strings.LastIndex(p, strings.Split(arr[i], ".")[0])
-						if index > -1 {
-							dirRuntimeProjectBase = strings.Trim(p[:index], "\t") + mainModuleName
-							break
-						}
 
-					}
-				}
 			}
-
-			// fmt.Println("找到", dirRuntimeProjectBase)
 		}
-
+	}
+	return
+}
+func initData() {
+	initOnce.Do(func() {
 		if executable, err := os.Executable(); err == nil {
 			// fmt.Println("executable", executable)
 			switch runtime.GOOS {
@@ -108,6 +102,7 @@ func initData() {
 					stat, err := os.Stat(goModPath)
 					if err == nil && stat != nil && !stat.IsDir() {
 						cmdBaseDir = searchDirectory
+						dirRuntimeProjectBase = searchDirectory
 						break
 					}
 					searchDirectory = filepath.Dir(searchDirectory)
@@ -117,8 +112,19 @@ func initData() {
 			if dir, err := filepath.Abs(filepath.Dir(os.Args[0])); err == nil {
 				cmdBaseDir = dir
 			}
-		}
 
+			if v, ok := debug.ReadBuildInfo(); ok {
+				mainModuleName := v.Main.Path
+				if mainModuleName == "" {
+					if len(v.Deps) > 0 {
+						mainModuleName = v.Deps[len(v.Deps)-1].Path
+					}
+				}
+				if v := parseRuntimeProjectBaseDir(string(debug.Stack()), mainModuleName); v != "" {
+					dirRuntimeProjectBase = v
+				}
+			}
+		}
 	})
 }
 
