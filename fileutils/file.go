@@ -3,6 +3,7 @@ package fileutils
 import (
 	"os"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"runtime/debug"
 	"strings"
@@ -32,6 +33,8 @@ func Mkdirp(dir string) {
 	}
 }
 
+var regTrim = regexp.MustCompile("\\s*")
+
 func parseRuntimeProjectBaseDir(stack, mainModuleName string) (res string) {
 	if mainModuleName != "" {
 		/**
@@ -52,23 +55,29 @@ func parseRuntimeProjectBaseDir(stack, mainModuleName string) (res string) {
 		arr := strings.Split(stack, "\n")
 		for i := len(arr) - 2; i > 0; i-- {
 			if strings.HasPrefix(arr[i], "main.main") {
-				res = strings.Replace(strings.Split(strings.Trim(arr[i+1], "\t"), ":")[0], "/main.go", "", -1)
+				res = strings.Replace(strings.Split(regTrim.ReplaceAllString(arr[i+1], ""), ":")[0], "/main.go", "", -1)
 				break
 			} else if strings.HasPrefix(arr[i], mainModuleName) {
-				p := arr[i+1]
-				p2 := strings.Split(arr[i], ".")[0]
-				index2 := strings.LastIndex(p2, "/")
-				p2 = "/" + p2[index2+1:] + "/"
-				index := strings.LastIndex(p, p2)
-				// fmt.Println("可能是", p, arr[i], p2, index)
+				pathInfo := arr[i+1]
+				moduleInfo := strings.Replace(arr[i], mainModuleName, "", -1)
+
+				indexLastSplit := strings.LastIndex(moduleInfo, "/")
+				moduleInfo2 := moduleInfo[0:indexLastSplit+1] + strings.Split(moduleInfo[indexLastSplit+1:], ".")[0]
+
+				moduleInfo2 = strings.ReplaceAll(moduleInfo2, "%2e", ".")
+
+				index := strings.LastIndex(pathInfo, "/")
 				if index > -1 {
-					res = strings.Trim(p[:index], "\t")
+					pathInfo = pathInfo[0:index]
+					res = pathInfo[0:strings.LastIndex(pathInfo, moduleInfo2)]
+					res = regTrim.ReplaceAllString(res, "")
+
 					break
 				}
-
 			}
 		}
 	}
+
 	return
 }
 func initData() {
@@ -120,6 +129,7 @@ func initData() {
 						mainModuleName = v.Deps[len(v.Deps)-1].Path
 					}
 				}
+
 				if v := parseRuntimeProjectBaseDir(string(debug.Stack()), mainModuleName); v != "" {
 					dirRuntimeProjectBase = v
 				}
