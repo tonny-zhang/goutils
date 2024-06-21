@@ -15,9 +15,11 @@ var defaultWriter io.Writer = os.Stdout
 
 // Logger logger
 type Logger struct {
-	prefix   string
-	writer   io.Writer
-	CloseLog bool
+	prefix          string
+	writer          io.Writer
+	printStack      bool // 是否打印发生错误路径
+	CloseLog        bool
+	HideProjectPath bool // 是否隐藏项目路径
 }
 
 // SetWriter set writer for logger
@@ -67,16 +69,21 @@ func (logger Logger) Warn(formater string, msg ...any) {
 }
 
 func (logger Logger) Error(formater string, msg ...any) {
-	fileNumInfo := ""
-	_, filePath, line, _ := runtime.Caller(1)
-	basedir := fileutils.GetRuntimeProjectBaseDir()
-	// fmt.Printf("fileutils.GetRuntimeProjectBaseDir() _%s_ %v\n", basedir, strings.Replace(filePath, basedir, "", -1))
-	filePath = strings.Replace(filePath, basedir, "", -1)
+	if logger.printStack {
+		fileNumInfo := ""
+		_, filePath, line, _ := runtime.Caller(1)
 
-	fileNumInfo = fmt.Sprintf("[%s:%d]", filePath, line)
+		if logger.HideProjectPath {
+			basedir := fileutils.GetRuntimeProjectBaseDir()
+			filePath = strings.Replace(filePath, basedir, "", -1)
+		}
 
-	formater = "%s : " + formater
-	msg = append([]any{fileNumInfo}, msg...)
+		fileNumInfo = fmt.Sprintf("[%s:%d]", filePath, line)
+
+		formater = "%s : " + formater
+		msg = append([]any{fileNumInfo}, msg...)
+	}
+
 	logger.log("Error", formater, msg...)
 }
 
@@ -86,7 +93,9 @@ func (logger Logger) Debug(formater string, msg ...any) {
 }
 
 var defaultLogger = Logger{
-	writer: defaultWriter,
+	writer:          defaultWriter,
+	HideProjectPath: true,
+	printStack:      true,
 }
 var loggerMap = make(map[string]Logger)
 
@@ -101,7 +110,9 @@ func PrefixLogger(prefix string) Logger {
 		return logger
 	}
 	logger := Logger{
-		prefix: prefix,
+		prefix:          prefix,
+		HideProjectPath: true,
+		printStack:      true,
 	}
 
 	loggerMap[prefix] = logger

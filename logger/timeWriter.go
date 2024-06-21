@@ -25,6 +25,10 @@ type TimeWriter struct {
 
 var loggerForWriter = PrefixLogger("[logger]")
 
+func init() {
+	loggerForWriter.printStack = false
+}
+
 func (writer *TimeWriter) clean() {
 	writer.cleanLocker.Lock()
 	defer writer.cleanLocker.Unlock()
