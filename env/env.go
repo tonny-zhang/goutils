@@ -2,6 +2,7 @@ package env
 
 import (
 	"path"
+	"path/filepath"
 	"sync"
 
 	"github.com/tonny-zhang/goutils/fileutils"
@@ -19,7 +20,20 @@ func AutoLoad() {
 		envFile := path.Join(fileutils.GetCmdDir(), ".env")
 		if fileutils.IsFileExists(envFile) {
 			envFiles = append(envFiles, envFile)
+			if envFileCurrentPath, e := filepath.Abs(".env"); e == nil {
+				if envFileCurrentPath != envFile && fileutils.IsFileExists(envFileCurrentPath) {
+					envFiles = append(envFiles, envFileCurrentPath)
+				}
+			}
+		} else {
+			envFiles = append(envFiles, ".env")
 		}
+
 		godotenv.Overload(envFiles...)
 	})
+}
+
+// LoadFromFile 从指定文件加载
+func LoadFromFile(envFiles ...string) {
+	godotenv.Overload(envFiles...)
 }
