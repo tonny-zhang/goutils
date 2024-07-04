@@ -5,8 +5,6 @@ import (
 	"path"
 	"sync"
 	"time"
-
-	"github.com/tonny-zhang/goutils/fileutils"
 )
 
 // TimeWriter 时间wirter
@@ -21,6 +19,8 @@ type TimeWriter struct {
 
 	cleaning    bool
 	cleanLocker sync.Mutex
+
+	createLinkLocker sync.Mutex // 创建快捷文件锁
 }
 
 var loggerForWriter = PrefixLogger("[logger]")
@@ -94,6 +94,9 @@ func (writer *TimeWriter) Write(p []byte) (n int, err error) {
 		go writer.clean() // 定时清除日志
 	}
 	if writer.file == nil {
+		writer.createLinkLocker.Lock()
+		defer writer.createLinkLocker.Unlock()
+
 		dir := path.Dir(logfilePath)
 		e := os.MkdirAll(dir, os.ModePerm)
 		if e != nil {
@@ -109,12 +112,24 @@ func (writer *TimeWriter) Write(p []byte) (n int, err error) {
 			return
 		} else if writer.LastFileName != "" {
 			fileLink := path.Join(dir, writer.LastFileName)
-			if fileutils.IsFileExists(fileLink) {
-				os.Remove(fileLink)
+
+			toCreateLink := true
+			if target, e := os.Readlink(fileLink); e == nil {
+				if target != logfilePath {
+					if e := os.Remove(fileLink); e != nil {
+						loggerForWriter.Error("删除快捷方式[%s] 异常 [%v]", fileLink, e)
+					}
+				} else {
+					toCreateLink = false // 快捷方式正确指向时不用创建
+				}
 			}
-			e := os.Symlink(logfilePath, fileLink)
-			if e != nil {
-				loggerForWriter.Error("创建最新日志文件快捷方式[%s] 异常 [%v]", fileLink, e)
+
+			if toCreateLink {
+				if e := os.Symlink(logfilePath, fileLink); e != nil {
+					loggerForWriter.Error("创建最新日志文件快捷方式[%s] 异常 [%v]", fileLink, e)
+				} else {
+					loggerForWriter.Info("创建最新日志文件快捷方式 %s => %s", logfilePath, fileLink)
+				}
 			}
 		}
 	}
