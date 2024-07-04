@@ -26,6 +26,16 @@ func IsFileExists(name string) bool {
 	return true
 }
 
+// IsLinkExists 软链接是否存在
+func IsLinkExists(name string) bool {
+	if _, err := os.Lstat(name); err != nil {
+		if os.IsNotExist(err) {
+			return false
+		}
+	}
+	return true
+}
+
 // Mkdirp 目录没有时创建
 func Mkdirp(dir string) {
 	if !IsFileExists(dir) {
