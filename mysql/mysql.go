@@ -5,7 +5,6 @@ import (
 	libSQL "database/sql"
 	"errors"
 	"fmt"
-	"os"
 	"reflect"
 	"runtime"
 	"time"
@@ -41,41 +40,8 @@ type Config struct {
 	MaxOpenConns int
 }
 
-func init() {
-	var user, pwd, host, port, database string
-	log = logger.PrefixLogger("[mysql]")
-	if db == nil {
-		if v := os.Getenv("MYSQL_HOST"); v != "" {
-			host = v
-		}
-		if v := os.Getenv("MYSQL_PORT"); v != "" {
-			port = v
-		}
-		if v := os.Getenv("MYSQL_USER"); v != "" {
-			user = v
-		}
-		if v := os.Getenv("MYSQL_PWD"); v != "" {
-			pwd = v
-		}
-		if v := os.Getenv("MYSQL_DATABASE"); v != "" {
-			database = v
-		}
-		var err error
-		dbFlag := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", user, pwd, host, port, database)
-		db, err = libSQL.Open("mysql", dbFlag)
-		if err != nil {
-			fmt.Println(err)
-		} else {
-			db.SetMaxOpenConns(10)
-			db.SetMaxIdleConns(10)
-		}
-	}
-	log.Info("mysql初始化 %s:%v", host, port)
-
-}
-
 // Conf 初始化配置
-func Conf(conf Config) {
+func Conf(conf Config) error {
 	log = logger.PrefixLogger("[mysql]")
 	var user, pwd, host, database string
 	var port int
@@ -90,13 +56,15 @@ func Conf(conf Config) {
 		dbFlag := fmt.Sprintf("%s:%s@tcp(%s:%v)/%s", user, pwd, host, port, database)
 		db, err = libSQL.Open("mysql", dbFlag)
 		if err != nil {
-			fmt.Println(err)
-		} else {
+			log.Error("mysql连接错误", err)
+			return err
+		} else if conf.MaxOpenConns > 0 {
 			db.SetMaxOpenConns(conf.MaxOpenConns)
 			db.SetMaxIdleConns(conf.MaxOpenConns)
 		}
 	}
 	log.Info("mysql初始化 %s:%v", host, port)
+	return nil
 }
 
 // 记录慢sql
