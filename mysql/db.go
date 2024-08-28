@@ -7,8 +7,10 @@ import (
 	"fmt"
 	"reflect"
 	"runtime"
+	"strings"
 	"time"
 
+	"github.com/tonny-zhang/goutils/fileutils"
 	"github.com/tonny-zhang/goutils/logger"
 )
 
@@ -23,6 +25,10 @@ func (ins DB) traceSlowSQL(sql string, cost time.Duration) {
 	if cost > slowTime {
 		fileNumInfo := ""
 		_, file, line, _ := runtime.Caller(3)
+		if ins.Log.HideProjectPath {
+			basedir := fileutils.GetRuntimeProjectBaseDir()
+			file = strings.Replace(file, basedir, "", -1)
+		}
 		fileNumInfo = fmt.Sprintf("%s:%d", file, line)
 		ins.Log.Warn("%s SLOW SQL %v>= %v [%s]", fileNumInfo, cost, slowTime, sql)
 	}
