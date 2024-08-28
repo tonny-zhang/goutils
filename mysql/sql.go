@@ -18,7 +18,7 @@ func interpolateParams(query string, args ...any) (string, error) {
 	// Number of ? should be same to len(args)
 	if strings.Count(query, "?") != len(args) {
 		err := fmt.Errorf("argv [%v] number error, excepted %d, actural %d", args, strings.Count(query, "?"), len(args))
-		log.Error("[%s] %v", query, err)
+
 		return query, err
 	}
 

@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"errors"
+	"reflect"
 	"strconv"
 	"time"
 )
@@ -216,4 +217,84 @@ func escapeStringQuotes(buf []byte, v string) []byte {
 	}
 
 	return buf[:pos]
+}
+
+var nilpointer any
+
+var tagMapCache = make(map[string]map[string]int)
+
+// https://studygolang.com/topics/9280
+func strutForScan(columns []string, u any) []any {
+	val := reflect.ValueOf(u).Elem()
+
+	tagMap := make(map[string]any)
+	typeReflect := reflect.TypeOf(u).Elem()
+	for i := 0; i < val.NumField(); i++ {
+		valueField := val.Field(i)
+		typeField := typeReflect.Field(i)
+		key := typeField.Tag.Get("db")
+		if key != "" {
+			tagMap[key] = valueField.Addr().Interface()
+		}
+	}
+
+	valuePointers := make([]any, len(columns))
+	for i, c := range columns {
+		v, ok := tagMap[c]
+		if ok {
+			valuePointers[i] = v
+		} else {
+			valuePointers[i] = &nilpointer
+		}
+
+	}
+	return valuePointers
+}
+
+// NOTICE: 这里加上PkgPath之后性能和原来差不多，如果不加就有struct名冲突的危险
+//
+//	后续如果性能差太多就得用原生去处理
+func strutForScanCache(columns []string, u any) []any {
+	val := reflect.ValueOf(u).Elem()
+
+	// fmt.Println(typeReflect.Name(), typeReflect.PkgPath())
+	// TODO: 是否能得到包在内的全称
+	t := val.Type()
+	key := t.PkgPath() + t.Name()
+	// key := val.Type().Name()
+
+	// fmt.Println(key, val.Type().PkgPath())
+	keys, ok := tagMapCache[key]
+	tagMap := make(map[string]any)
+	if !ok {
+		keys := make(map[string]int, 0)
+		// 对同类型进行缓存
+		typeReflect := reflect.TypeOf(u).Elem()
+		for i := 0; i < val.NumField(); i++ {
+			valueField := val.Field(i)
+			typeField := typeReflect.Field(i)
+			key := typeField.Tag.Get("db")
+			if key != "" {
+				tagMap[key] = valueField.Addr().Interface()
+				keys[key] = i
+			}
+		}
+		tagMapCache[key] = keys
+	} else {
+		for k, index := range keys {
+			tagMap[k] = val.Field(index).Addr().Interface()
+		}
+	}
+
+	valuePointers := make([]any, len(columns))
+	for i, c := range columns {
+		v, ok := tagMap[c]
+		if ok {
+			valuePointers[i] = v
+		} else {
+			valuePointers[i] = &nilpointer
+		}
+
+	}
+	return valuePointers
 }
