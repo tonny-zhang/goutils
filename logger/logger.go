@@ -16,15 +16,20 @@ var defaultWriter io.Writer = os.Stdout
 // Logger logger
 type Logger struct {
 	prefix          string
-	writer          io.Writer
-	printStack      bool // 是否打印发生错误路径
+	writers         []io.Writer
+	PrintStack      bool // 是否打印发生错误路径
 	CloseLog        bool
 	HideProjectPath bool // 是否隐藏项目路径
 }
 
 // SetWriter set writer for logger
 func (logger *Logger) SetWriter(writer io.Writer) {
-	logger.writer = writer
+	logger.writers = []io.Writer{writer}
+}
+
+// SetMultiWriter set multi writer for logger
+func (logger *Logger) SetMultiWriter(writer ...io.Writer) {
+	logger.writers = writer
 }
 
 // SetWriter 设置默认输出对象
@@ -32,7 +37,7 @@ func SetWriter(writer io.Writer) {
 	defaultWriter = writer
 
 	defaultLogger = Logger{
-		writer: defaultWriter,
+		writers: []io.Writer{writer},
 	}
 }
 
@@ -41,9 +46,9 @@ func (logger Logger) log(prev, formater string, msg ...any) {
 	if logger.CloseLog {
 		return
 	}
-	writer := logger.writer
-	if writer == nil {
-		writer = defaultWriter
+	writers := logger.writers
+	if len(writers) == 0 {
+		writers = []io.Writer{defaultWriter}
 	}
 	formater = "%s %-8s %s \t" + formater
 	msg = append([]any{
@@ -52,9 +57,12 @@ func (logger Logger) log(prev, formater string, msg ...any) {
 		logger.prefix,
 	}, msg...)
 	msgToWrite := fmt.Sprintf(formater, msg...)
-	if _, e := fmt.Fprintln(writer, msgToWrite); e != nil {
-		// write log to stdout
-		fmt.Fprintln(os.Stdout, msgToWrite)
+
+	for _, writer := range writers {
+		if _, e := fmt.Fprintln(writer, msgToWrite); e != nil {
+			// write log to stdout
+			fmt.Fprintln(os.Stdout, msgToWrite)
+		}
 	}
 }
 
@@ -69,7 +77,7 @@ func (logger Logger) Warn(formater string, msg ...any) {
 }
 
 func (logger Logger) Error(formater string, msg ...any) {
-	if logger.printStack {
+	if logger.PrintStack {
 		fileNumInfo := ""
 		_, filePath, line, _ := runtime.Caller(1)
 
@@ -93,9 +101,9 @@ func (logger Logger) Debug(formater string, msg ...any) {
 }
 
 var defaultLogger = Logger{
-	writer:          defaultWriter,
+	writers:         []io.Writer{defaultWriter},
 	HideProjectPath: true,
-	printStack:      true,
+	PrintStack:      true,
 }
 var loggerMap = make(map[string]Logger)
 
@@ -112,7 +120,7 @@ func PrefixLogger(prefix string) Logger {
 	logger := Logger{
 		prefix:          prefix,
 		HideProjectPath: true,
-		printStack:      true,
+		PrintStack:      true,
 	}
 
 	loggerMap[prefix] = logger

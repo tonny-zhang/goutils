@@ -26,7 +26,7 @@ type TimeWriter struct {
 var loggerForWriter = PrefixLogger("[logger]")
 
 func init() {
-	loggerForWriter.printStack = false
+	loggerForWriter.PrintStack = false
 }
 
 func (writer *TimeWriter) clean() {
