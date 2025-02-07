@@ -11,7 +11,7 @@ import (
 	"github.com/tonny-zhang/goutils/fileutils"
 )
 
-var defaultWriter io.Writer = os.Stdout
+var defaultWriter []io.Writer = []io.Writer{os.Stdout}
 
 // Logger logger
 type Logger struct {
@@ -34,10 +34,14 @@ func (logger *Logger) SetMultiWriter(writer ...io.Writer) {
 
 // SetWriter 设置默认输出对象
 func SetWriter(writer io.Writer) {
-	defaultWriter = writer
+	SetMultiWriter(writer)
+}
 
+// SetMultiWriter set multi writer for default logger
+func SetMultiWriter(writer ...io.Writer) {
+	defaultWriter = writer
 	defaultLogger = Logger{
-		writers: []io.Writer{writer},
+		writers: defaultWriter,
 	}
 }
 
@@ -48,7 +52,7 @@ func (logger Logger) log(prev, formater string, msg ...any) {
 	}
 	writers := logger.writers
 	if len(writers) == 0 {
-		writers = []io.Writer{defaultWriter}
+		writers = defaultWriter
 	}
 	formater = "%s %-8s %s \t" + formater
 	msg = append([]any{
@@ -101,9 +105,10 @@ func (logger Logger) Debug(formater string, msg ...any) {
 }
 
 var defaultLogger = Logger{
-	writers:         []io.Writer{defaultWriter},
+	writers:         defaultWriter,
 	HideProjectPath: true,
 	PrintStack:      true,
+	CloseLog:        false,
 }
 var loggerMap = make(map[string]Logger)
 
@@ -119,8 +124,9 @@ func PrefixLogger(prefix string) Logger {
 	}
 	logger := Logger{
 		prefix:          prefix,
-		HideProjectPath: true,
-		PrintStack:      true,
+		HideProjectPath: defaultLogger.HideProjectPath,
+		PrintStack:      defaultLogger.PrintStack,
+		CloseLog:        defaultLogger.CloseLog,
 	}
 
 	loggerMap[prefix] = logger
